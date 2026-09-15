@@ -10,13 +10,19 @@ engine and scenario engine.  No values are hard-coded or fabricated.
 Data: SIMULATED — hackathon demonstration only.
 """
 
+import sys
+import os
+
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
 from congestion import calculate_congestion_metrics
 from scenario_engine import run_scenario, SERVICE_TIME_REDUCTION
+
+# AI Operations Copilot — deterministic decision-support layer
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+from ai_copilot import generate_copilot_insights
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -94,6 +100,79 @@ div[data-testid="metric-container"] [data-testid="stMetricDelta"] {
 
 /* Horizontal rule */
 hr { border-color: #1e2230; margin: 8px 0; }
+
+/* AI Copilot panel */
+.copilot-panel {
+    background: #0b1120;
+    border: 1px solid #1e3a5f;
+    border-left: 4px solid #4a9eff;
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 12px;
+}
+.copilot-header {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #4a9eff;
+    margin-bottom: 8px;
+}
+.copilot-fact {
+    font-size: 0.85rem;
+    color: #c9d1d9;
+    line-height: 1.7;
+}
+.copilot-rec {
+    background: #0e1420;
+    border: 1px solid #1e2d44;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+}
+.copilot-rec-num {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #4a9eff;
+    text-transform: uppercase;
+}
+.copilot-warning {
+    background: #1a1200;
+    border: 1px solid #78350f;
+    border-left: 4px solid #f59e0b;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: #fcd34d;
+}
+.copilot-badge-facts {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #22c55e;
+    background: #052e16;
+    border: 1px solid #166534;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+.copilot-badge-recs {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #93c5fd;
+    background: #0c2a4a;
+    border: 1px solid #1e3a5f;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 8px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -630,6 +709,122 @@ constrained resource exposes the next — congestion is redistributed, not elimi
 
 _Scenario description:_ {sc_result["scenario_description"]}
 """)
+
+st.markdown("---")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SECTION 8b — AI OPERATIONS COPILOT
+# ══════════════════════════════════════════════════════════════════════════════
+
+st.markdown('<p class="section-header">🤖 AI Operations Copilot</p>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="disclaimer">'
+    '🤖 <strong>Copilot type: Deterministic Rule-Based Decision Support</strong> — '
+    'All insights are derived exclusively from the optimizer and congestion engine outputs. '
+    'No numerical values are fabricated. No external LLM or API is used. '
+    'Facts and AI recommendations are clearly separated below.'
+    '</div>',
+    unsafe_allow_html=True,
+)
+st.markdown("")
+
+# Generate copilot insights (uses results already computed above — no new engine calls)
+copilot = generate_copilot_insights(cong, sc_result)
+op_status = copilot["operational_status"]
+bn_analysis = copilot["bottleneck_analysis"]
+recs = copilot["recommendations"]
+sc_insight = copilot["scenario_insight"]
+
+# ── Row 1: Operational Status + Key Bottleneck ────────────────────────────────
+cp_col1, cp_col2 = st.columns(2, gap="large")
+
+with cp_col1:
+    status_border = {"red": "#ef4444", "orange": "#f59e0b", "green": "#22c55e"}.get(
+        op_status["status_color"], "#4a9eff"
+    )
+    st.markdown(
+        f'<div class="copilot-panel" style="border-left-color:{status_border}">'
+        f'<div class="copilot-header">Operational Status</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<span class="copilot-badge-facts">✓ Calculated Facts</span>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(op_status["headline"])
+    for fact in op_status["bullet_facts"]:
+        st.markdown(f"- {fact}")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with cp_col2:
+    st.markdown(
+        '<div class="copilot-panel">'
+        '<div class="copilot-header">Key Bottleneck</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<span class="copilot-badge-facts">✓ Calculated Facts</span>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(bn_analysis["explanation"])
+    st.markdown(bn_analysis["why_it_matters"])
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ── Row 2: Priority Actions ────────────────────────────────────────────────────
+st.markdown("")
+st.markdown(
+    '<div class="copilot-panel">'
+    '<div class="copilot-header">Priority Actions</div>',
+    unsafe_allow_html=True,
+)
+st.markdown(
+    '<span class="copilot-badge-recs">🤖 AI Decision-Support Recommendations</span>',
+    unsafe_allow_html=True,
+)
+for rec in recs:
+    cat_icon = {"bottleneck": "🔴", "vessel": "🚢", "scenario": "📊", "monitoring": "👁"}.get(
+        rec.get("category", ""), "▸"
+    )
+    st.markdown(
+        f'<div class="copilot-rec">'
+        f'<div class="copilot-rec-num">{cat_icon} Action {rec["priority"]}</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(f"**{rec['action']}**")
+    st.markdown(f"*Why this matters:* {rec['evidence']}")
+    st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
+
+# ── Row 3: Scenario Insight ────────────────────────────────────────────────────
+if sc_insight:
+    st.markdown("")
+    st.markdown(
+        '<div class="copilot-panel">'
+        '<div class="copilot-header">Scenario Insight</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<span class="copilot-badge-facts">✓ Calculated Facts</span>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(sc_insight["summary_sentence"])
+    sci_col1, sci_col2 = st.columns(2)
+    with sci_col1:
+        for line in sc_insight["metric_lines"][:3]:
+            st.markdown(f"- {line}")
+    with sci_col2:
+        for line in sc_insight["metric_lines"][3:]:
+            st.markdown(f"- {line}")
+
+    # Bottleneck shift warning
+    if sc_insight["bottleneck_warning"]:
+        st.markdown("")
+        st.markdown(
+            f'<div class="copilot-warning">{sc_insight["bottleneck_warning"]}</div>',
+            unsafe_allow_html=True,
+        )
+    st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("---")
 

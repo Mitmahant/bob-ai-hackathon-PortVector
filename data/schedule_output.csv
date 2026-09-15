@@ -1,0 +1,16 @@
+vessel_id,vessel_name,berth_id,eta_hours,start_time,end_time,wait_hours,demurrage_cost,berth_operating_cost,total_cost
+V01,Container Ship A,4,1,1,5,0,0,1600,1600
+V02,Container Ship B,2,2,2,8,0,0,4500,4500
+V03,Container Ship C,3,3,3,11,0,0,7200,7200
+V04,Container Ship D,1,4,4,7,0,0,1500,1500
+V05,Container Ship E,5,5,5,10,0,0,2750,2750
+V06,Container Ship F,2,6,8,15,2,5600,5250,10850
+V07,Container Ship G,3,7,11,20,4,16000,8100,24100
+V08,Container Ship H,4,8,8,11,0,0,1200,1200
+V09,Container Ship I,1,9,9,13,0,0,2000,2000
+V10,Container Ship J,2,10,15,21,5,15000,4500,19500
+V11,Container Ship K,3,11,27,35,16,60800,7200,68000
+V12,Container Ship L,4,12,12,15,0,0,1200,1200
+V13,Container Ship M,1,13,13,18,0,0,2500,2500
+V14,Container Ship N,2,14,21,27,7,18200,4500,22700
+V15,Container Ship O,3,15,20,27,5,17000,6300,23300

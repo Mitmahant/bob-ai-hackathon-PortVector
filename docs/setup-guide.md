@@ -1,79 +1,103 @@
-# Setup Guide
+# Setup Guide — PortPulse AI
 
-> **This file is read by the automated evaluation pipeline. Be precise and complete.**
+> This project requires **no API keys, no cloud accounts, and no external services**.
+> It runs entirely locally with Python + pip.
+
+---
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
+- Python 3.10 or later
+- pip (comes with Python)
+- A terminal / command line
 
-- [ ] [e.g., Python 3.11+]
-- [ ] [e.g., Node.js 18+]
-- [ ] [e.g., Docker Desktop]
-- [ ] [e.g., An IBM Cloud account with watsonx.ai access]
+No environment variables are required to run the dashboard or tests.
 
-## Environment Variables
-
-Copy `.env.example` to `.env` and fill in the values:
-
-```bash
-cp .env.example .env
-```
-
-| Variable | Description | Required |
-|---|---|---|
-| `WATSONX_API_KEY` | Your IBM watsonx.ai API key | Yes |
-| `WATSONX_PROJECT_ID` | Your watsonx.ai project ID | Yes |
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `SLACK_WEBHOOK_URL` | Slack webhook for alerts | No |
+---
 
 ## Installation
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/[your-org]/[your-repo].git
-cd [your-repo]
+git clone https://github.com/Mitmahant/bob-ai-hackathon-PortVector.git
+cd bob-ai-hackathon-PortVector
 
-# 2. Install backend dependencies
-[your command — e.g.: pip install -r requirements.txt]
+# 2. Install dependencies (takes ~1–2 minutes)
+pip install -r requirements.txt
 
-# 3. Install frontend dependencies (if applicable)
-[your command — e.g.: cd frontend && npm install]
-
-# 4. Set up the database (if applicable)
-[your command — e.g.: python manage.py migrate]
+# Or use the setup script:
+bash setup.sh
 ```
 
-## Running the Application
+**Dependencies installed:**
+- `streamlit` — dashboard framework
+- `pandas` — data manipulation
+- `numpy` — numerical utilities
+- `ortools` — OR-Tools SCIP MIP optimizer (Google)
+- `plotly` — interactive charts
+
+---
+
+## Running the Dashboard
 
 ```bash
-# Start the backend
-[your command — e.g.: uvicorn app.main:app --reload]
-
-# Start the frontend (in a separate terminal, if applicable)
-[your command — e.g.: cd frontend && npm run dev]
+streamlit run app.py
 ```
 
-The application will be available at: `http://localhost:[PORT]`
+Open **http://localhost:8501** in your browser.
+
+The dashboard loads immediately — the pre-computed optimizer schedule
+(`data/schedule_output.csv`) and all required data files are already committed.
+
+---
 
 ## Running Tests
 
 ```bash
-[your test command — e.g.: pytest tests/ -v]
+# Core engine tests
+python test_optimizer.py
+python test_congestion.py
+python test_scenario_engine.py
+
+# AI Copilot tests (100 assertion checks)
+python test_ai_copilot.py
+
+# Optimizer + schedule validation (end-to-end)
+python run_optimizer.py
 ```
 
-## Quick Demo (Optional)
+All test suites print `TEST SUITE PASSED` on success and exit with code 1 on failure.
 
-If you have a demo script or sample data to showcase the project quickly:
+---
+
+## Regenerating Data (Optional)
+
+The `data/` directory is pre-populated. To regenerate from scratch:
 
 ```bash
-[e.g.: python demo/seed_demo_data.py]
-[e.g.: open http://localhost:8000/demo]
+python generate_data.py     # regenerates data/vessels.csv and data/berths.csv
+python run_optimizer.py     # re-runs optimizer, regenerates data/schedule_output.csv
+streamlit run app.py        # launch dashboard with fresh data
 ```
+
+---
 
 ## Troubleshooting
 
 | Issue | Solution |
 |---|---|
-| [e.g., `ModuleNotFoundError`] | [e.g., Run `pip install -r requirements.txt` again] |
-| [e.g., Database connection refused] | [e.g., Ensure PostgreSQL is running: `docker compose up db`] |
-| [e.g., watsonx.ai 401 error] | [e.g., Check `WATSONX_API_KEY` in your `.env` file] |
+| `ModuleNotFoundError: No module named 'ortools'` | Run `pip install -r requirements.txt` again |
+| `ModuleNotFoundError: No module named 'streamlit'` | Run `pip install streamlit` |
+| `FileNotFoundError: data/vessels.csv` | Run `python generate_data.py && python run_optimizer.py` |
+| Port 8501 already in use | Run `streamlit run app.py --server.port 8502` |
+| Slow first load | The optimizer runs once per session — subsequent interactions are fast |
+
+---
+
+## Notes
+
+- No `.env` file is needed. The `src/.env.example` is a template retained from the
+  project scaffold — it is not used by PortPulse AI.
+- No database, no authentication, no cloud services.
+- The AI Operations Copilot is entirely local and deterministic — it requires
+  no API keys.

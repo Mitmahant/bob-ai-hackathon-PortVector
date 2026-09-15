@@ -83,7 +83,7 @@ demo/*.avi
 demo/*.mkv
 
 # ── Docker volumes / local data ───────────────────────────────────────────────
-data/
+# data/ — NOT ignored; pre-computed CSVs are committed for immediate demo use
 logs/
 *.log
 

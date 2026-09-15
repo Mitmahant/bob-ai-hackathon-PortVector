@@ -1,6 +1,6 @@
-https://youtu.be/your-demo-video-link-here
+NOT RECORDED YET
 
-Replace the URL above with a link to your demo video.
+Once the demo video is recorded, replace this file's contents with the video URL.
 
 Accepted platforms:
   - YouTube (public or unlisted)
@@ -13,3 +13,4 @@ Video requirements:
   - Must show the application running (not just slides)
   - Should walk through at least one key feature end-to-end
   - Audio narration strongly recommended
+  - Use demo/live-demo-script.md as the presenter guide

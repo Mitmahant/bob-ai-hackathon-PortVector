@@ -1,49 +1,91 @@
-# Architecture
+# Architecture — PortPulse AI
 
 ## System Architecture
 
-[Describe the overall architecture of your system. Replace the Mermaid diagram below with your actual architecture.]
-
 ```mermaid
 graph TD
-    A[User / Browser] -->|HTTP| B[Frontend - React]
-    B -->|REST API| C[Backend - FastAPI]
-    C -->|SDK| D[watsonx.ai]
-    C -->|Query| E[PostgreSQL]
-    C -->|Publish| F[Slack Webhook]
-    D -->|Inference Result| C
+    A[Simulated Port Data<br/>vessels.csv · berths.csv] -->|pandas DataFrame| B[optimizer.py<br/>OR-Tools MIP Scheduler]
+    B -->|schedule_output.csv<br/>deterministic schedule| C[congestion.py<br/>Congestion Engine]
+    B --> D[scenario_engine.py<br/>What-If Scenarios]
+    C -->|cong dict| E[src/ai_copilot.py<br/>AI Operations Copilot]
+    D -->|sc_result dict| E
+    E -->|Operator insights| F[app.py<br/>Streamlit Dashboard]
+    C --> F
+    D --> F
+    B --> F
 ```
 
 ## Components
 
-| Component | Technology | Responsibility |
+| Component | File | Responsibility |
 |---|---|---|
-| Frontend | [e.g., React 18] | [e.g., Dashboard UI, user interaction] |
-| Backend API | [e.g., FastAPI] | [e.g., Business logic, orchestration] |
-| AI / ML | [e.g., watsonx.ai] | [e.g., Anomaly scoring, classification] |
-| Database | [e.g., PostgreSQL] | [e.g., Storing pipeline events and scores] |
-| Notifications | [e.g., Slack API] | [e.g., Alerting on threshold breaches] |
+| MIP Optimizer | `optimizer.py` | OR-Tools SCIP berth allocation and scheduling |
+| Congestion Engine | `congestion.py` | Deterministic analytical congestion scoring |
+| Scenario Engine | `scenario_engine.py` | What-if scenario evaluation (re-runs optimizer) |
+| **AI Operations Copilot** | `src/ai_copilot.py` | Decision-support layer — interprets engine results |
+| Dashboard | `app.py` | Streamlit UI — all sections including Copilot panel |
+
+## AI Operations Copilot
+
+**Copilot type: Deterministic Rule-Based Decision Support**
+
+The Copilot is NOT:
+- A trained ML/AI model
+- Connected to an external LLM or API
+- Performing independent numerical calculation
+- Requiring internet access or API credentials
+
+The Copilot IS:
+- A deterministic rule-based interpreter of structured engine outputs
+- Designed so an LLM can be substituted later without changing the interface
+- Grounded exclusively in values produced by the existing engines
+
+### Copilot Architecture
+
+```
+Data (CSV files)
+  ↓
+optimizer.py     → schedule DataFrame
+congestion.py    → cong dict (summary, berth_metrics, vessel_flags, bottleneck_berth)
+scenario_engine.py → sc_result dict (baseline_metrics, scenario_metrics, deltas, bottleneck shift)
+  ↓
+src/ai_copilot.py
+  ├── build_operational_status()   → headline + bullet facts
+  ├── build_bottleneck_analysis()  → bottleneck identification + explanation
+  ├── build_recommendations()      → 2–4 grounded priority actions
+  ├── build_scenario_insight()     → delta interpretation + bottleneck shift warning
+  └── generate_copilot_insights()  → full output dict
+  ↓
+app.py — AI Operations Copilot panel (Section 8b)
+  ├── Operational Status   [CALCULATED FACTS badge]
+  ├── Key Bottleneck       [CALCULATED FACTS badge]
+  ├── Priority Actions     [AI DECISION-SUPPORT RECOMMENDATIONS badge]
+  └── Scenario Insight     [CALCULATED FACTS badge + bottleneck shift warning]
+```
 
 ## Data Flow
 
-[Describe how data moves through your system from input to output.]
+1. `data/vessels.csv` and `data/berths.csv` are loaded by the dashboard on startup.
+2. `optimizer.py` runs the SCIP MIP to produce the 72-hour berth schedule.
+3. `congestion.py` computes analytical congestion metrics from the schedule.
+4. `scenario_engine.py` runs what-if scenarios (re-runs optimizer on modified inputs).
+5. `src/ai_copilot.py` receives the structured engine outputs and generates operator insights.
+6. `app.py` renders all results in the Streamlit dashboard.
 
-1. [e.g., Pipeline logs are ingested via a webhook from GitHub Actions]
-2. [e.g., Logs are preprocessed and chunked into 512-token segments]
-3. [e.g., Each chunk is sent to the watsonx.ai inference endpoint]
-4. [e.g., Anomaly scores are stored in PostgreSQL]
-5. [e.g., The React dashboard polls the API every 30 seconds to refresh]
+## Key Design Decisions
 
-## Security Considerations
+| Decision | Rationale |
+|---|---|
+| Copilot reads engine outputs only | Architecture enforces that numerical truth stays in the engines |
+| Deterministic rule-based copilot | No external API dependency — works without internet access |
+| Separate module (src/ai_copilot.py) | Copilot logic is isolated and can be upgraded to LLM without touching engines |
+| Visual distinction of facts vs recommendations | Operators must trust calculated facts; recommendations are advisory |
+| Bottleneck shift detection | Warns operators of unintended consequences of interventions |
 
-[Note any security decisions relevant to the architecture — even if basic.]
+## Limitations
 
-- [e.g., API keys stored in environment variables, never committed to git]
-- [e.g., All API routes require a Bearer token]
-- [e.g., Database credentials rotated via IBM Secrets Manager]
-
-## Scalability Notes
-
-[Optional: how would this scale beyond the hackathon prototype?]
-
-[e.g., "The FastAPI backend is stateless and could be horizontally scaled behind a load balancer. The watsonx.ai calls are the bottleneck and would benefit from request batching."]
+- Crane scheduling is not modelled (crane data exists but is unused).
+- Tide windows and weather are not modelled.
+- Vessel arrivals are deterministic (no stochastic delay model).
+- The Copilot is deterministic rule-based, not LLM-powered.
+- Simulated data only — no live port data feed.
