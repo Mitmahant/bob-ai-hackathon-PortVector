@@ -1,16 +1,1 @@
-NOT RECORDED YET
-
-Once the demo video is recorded, replace this file's contents with the video URL.
-
-Accepted platforms:
-  - YouTube (public or unlisted)
-  - Loom (https://www.loom.com/share/...)
-  - IBM Box (https://ibm.box.com/s/...)
-  - Google Drive (set to "Anyone with the link can view")
-
-Video requirements:
-  - Length: 3–5 minutes maximum
-  - Must show the application running (not just slides)
-  - Should walk through at least one key feature end-to-end
-  - Audio narration strongly recommended
-  - Use demo/live-demo-script.md as the presenter guide
+https://drive.google.com/drive/folders/1JmJcNhAMlPbnicRy3KD7YELOFgGqIp3J?usp=sharing
